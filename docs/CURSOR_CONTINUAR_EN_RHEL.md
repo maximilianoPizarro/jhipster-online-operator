@@ -1,37 +1,33 @@
-# Continuar el upgrade del operador (RHEL / Linux)
+# Estado del upgrade del operador v1.1.2 (RHEL / Linux)
 
-Este commit deja el trabajo **hasta el chart 1.1.2, CRDs de workers, watches, RBAC y samples**. Se **revirtieron** los cambios del `Makefile` pensados para Windows (MINGW, zip de kustomize, `.exe` de operator-sdk): en RHEL/Linux el `Makefile` vuelve al flujo estándar con `tar.gz` y binarios `linux_amd64`.
+## Completado
 
-## Ya hecho en el repo
-
-- Helm chart principal `helm-charts/jhipster-online/` alineado con upstream **1.1.2** (sin templates de Deployments/Services de workers en el chart principal; los workers van por CR aparte).
-- Tres charts: `helm-charts/jhipster8-worker/`, `helm-charts/pyhipster-worker/`, `helm-charts/mcp-worker/`.
+- Helm chart principal `helm-charts/jhipster-online/` alineado con upstream **1.1.2**.
+- Tres charts de workers: `jhipster8-worker/`, `pyhipster-worker/`, `mcp-worker/`.
 - `watches.yaml` con los cuatro kinds.
 - CRDs en `config/crd/bases/` (main + tres workers) y `config/crd/kustomization.yaml`.
-- Samples en `config/samples/` (convención: **mismo `metadata.name`** en `JhipsterOnline` y en los tres workers, p. ej. `demo`, y `instanceBaseName` en workers = ese nombre).
-- RBAC actualizado (`config/rbac/role.yaml`, editor/viewer).
-- `Makefile`: `VERSION ?= 1.1.2`, `IMAGE_TAG_BASE ?= quay.io/maximilianopizarro/jhipster-online-operator` (sin lógica Windows).
-- `config/manager/kustomization.yaml`: `newTag: v1.1.2`.
-- `PROJECT`: recursos API de los workers.
+- Samples en `config/samples/` con nombres unicos (`demo` para main, `demo-jhipster8-worker`, `demo-pyhipster-worker`, `demo-mcp-worker` para workers).
+- RBAC actualizado (`config/rbac/role.yaml`): incluye `rbac.authorization.k8s.io` (roles/rolebindings) y `networking.k8s.io` (ingresses).
+- `Makefile`: `VERSION=1.1.2`, `IMAGE_TAG_BASE` en Quay, `LOCALBIN` definido, `kube-rbac-proxy` actualizado a `quay.io/brancz/kube-rbac-proxy:v0.18.1`.
+- `config/manager/manager.yaml`: imagen manager usa `controller:latest` (kustomize reemplaza).
+- `make bundle` ejecutado con `operator-sdk v1.40.0`.
+- CSV base y bundle actualizados a v1.1.2 con 4 CRDs owned, `alm-examples` completos, `replaces: v0.1.0`.
+- Anotaciones OpenShift: `com.redhat.openshift.versions: "v4.12"` en bundle metadata y Dockerfile.
+- GitHub Actions: `ci.yaml` (helm lint, yamllint, bundle validate) y `release.yaml` (build/push Quay).
+- FBC: `catalog/jhipster-online-operator/` con `catalog.yaml` y `ci.yaml`.
+- README actualizado a v1.1.2 con badge CI, 4 CRDs documentados, convencion de nombres, LICENSE link correcto.
 
-## Pendiente al abrir Cursor en RHEL
+## Probado en OpenShift
 
-1. **`make bundle`** (requiere `operator-sdk` y `kustomize` descargables en Linux; en Windows no hay binario oficial de operator-sdk para la misma versión).
-   ```bash
-   make bundle IMG=quay.io/maximilianopizarro/jhipster-online-operator:v1.1.2 VERSION=1.1.2
-   ```
-2. **CSV / bundle**: actualizar `bundle/manifests/jhipster-online-operator.clusterserviceversion.yaml` (versión **1.1.2**, `replaces` **v0.1.0**, cuatro CRDs owned con `description`, `alm-examples` con los cuatro CRs, `minKubeVersion: 1.25.0`, anotación `support`, imágenes del manager a **v1.1.2**, reglas RBAC del CSV para `jhipster8workers`, `pyhipsterworkers`, `mcpworkers`).
-3. **OpenShift**: `com.redhat.openshift.versions: "v4.12"` en `bundle/metadata/annotations.yaml` y `LABEL` equivalente en `bundle.Dockerfile`.
-4. **GitHub Actions**: CI (helm lint, yamllint, `operator-sdk bundle validate`) y release (build/push a Quay con `QUAY_USERNAME` / `QUAY_PASSWORD`).
-5. **FBC**: plantillas / `ci.yaml` para `community-operators-prod` según el plan.
-6. **README**: v1.1.2, badge de CI, enlace LICENSE correcto, quitar fences sobrantes; documentar la convención del nombre compartido entre CRs.
+- Operator desplegado en cluster OpenShift 4.x con imagen interna.
+- 4 CRs reconciliados: JhipsterOnline + 3 workers + MariaDB + Route.
+- Workers requieren `metadata.name` distinto del CR principal (Helm release names deben ser unicos).
+- El chart principal crea un RoleBinding con ClusterRole `edit`; el SA del operator necesita tener ese permiso (`openshift.grantEditRoleToServiceAccount: true` en values).
 
-## Archivos empaquetados (.tgz) bajo `helm-charts/jhipster-online/charts/`
+## Pendiente para produccion
 
-Si no quieres versionarlos en git (peso / duplicado del repo Helm), añádelos a `.gitignore` y deja solo el chart “source”.
-
-## Verificación rápida en RHEL
-
-```bash
-helm lint helm-charts/jhipster-online helm-charts/jhipster8-worker helm-charts/pyhipster-worker helm-charts/mcp-worker
-```
+- Publicar imagen operator `v1.1.2` a Quay (`podman push`).
+- Publicar imagen bundle `v1.1.2` a Quay.
+- Configurar secrets `QUAY_USERNAME`/`QUAY_PASSWORD` en GitHub Actions.
+- Crear tag `v1.1.2` para disparar el workflow de release.
+- PR a `community-operators-prod` con el FBC.

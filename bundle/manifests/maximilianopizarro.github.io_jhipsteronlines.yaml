@@ -15,26 +15,29 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: JhipsterOnline is the Schema for the jhipsteronlines API
+        description: JHipster Online main application instance. The spec is passed
+          to the bundled Helm chart (jhipster-online 1.1.2) as values. Optional HTTP
+          workers are separate CRs (Jhipster8Worker, PyhipsterWorker, McpWorker);
+          use the same metadata.name on the main instance and worker CRs so worker
+          Services match APPLICATION_*WORKER_* URLs on the main pod. For a minimal
+          working install set image (repository, tag), env (GitHub OAuth, datasource,
+          generator mode), and tune route/mariadb as needed. See chart values.yaml
+          for all keys.
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
-            description: Spec defines the desired state of JhipsterOnline
+            description: Helm values for jhipster-online. Typically set image.repository,
+              image.tag, env.*, route.enabled, mariadb.enabled, and jhipster8Worker/pyhipsterWorker/mcpWorker.enabled
+              to true when the corresponding worker CRs are deployed.
             type: object
             x-kubernetes-preserve-unknown-fields: true
           status:
-            description: Status defines the observed state of JhipsterOnline
+            description: Observed state (Helm operator).
             type: object
             x-kubernetes-preserve-unknown-fields: true
         type: object

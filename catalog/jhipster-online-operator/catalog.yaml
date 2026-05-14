@@ -1,0 +1,21 @@
+---
+schema: olm.package
+name: jhipster-online-operator
+defaultChannel: alpha
+---
+schema: olm.channel
+name: alpha
+package: jhipster-online-operator
+entries:
+  - name: jhipster-online-operator.v1.1.2
+    replaces: jhipster-online-operator.v0.1.0
+---
+schema: olm.bundle
+name: jhipster-online-operator.v1.1.2
+package: jhipster-online-operator
+image: quay.io/maximilianopizarro/jhipster-online-operator-bundle:v1.1.2
+properties:
+  - type: olm.package
+    value:
+      packageName: jhipster-online-operator
+      version: 1.1.2

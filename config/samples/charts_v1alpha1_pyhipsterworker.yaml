@@ -1,7 +1,7 @@
 apiVersion: maximilianopizarro.github.io/v1alpha1
 kind: PyhipsterWorker
 metadata:
-  name: demo
+  name: pyhipster-worker
 spec:
   enabled: true
   instanceBaseName: demo
@@ -14,3 +14,10 @@ spec:
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  OPERATOR_SDK_VERSION: v1.40.0
+
+jobs:
+  lint:
+    name: Lint charts & manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Helm lint
+        run: |
+          helm lint helm-charts/jhipster-online
+          helm lint helm-charts/jhipster8-worker
+          helm lint helm-charts/pyhipster-worker
+          helm lint helm-charts/mcp-worker
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: yamllint CRDs & samples
+        run: |
+          yamllint -d relaxed config/crd/bases/
+          yamllint -d relaxed config/samples/
+
+  validate-bundle:
+    name: Validate OLM bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install operator-sdk
+        run: |
+          curl -sSLo operator-sdk \
+            https://github.com/operator-framework/operator-sdk/releases/download/${{ env.OPERATOR_SDK_VERSION }}/operator-sdk_linux_amd64
+          chmod +x operator-sdk
+          sudo mv operator-sdk /usr/local/bin/
+
+      - name: Validate bundle
+        run: operator-sdk bundle validate ./bundle

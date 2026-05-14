@@ -11,6 +11,9 @@ metadata:
   name: manager-role
 rules:
 - apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
   resources: ["pods","secrets", "configmaps", "events", "services", "persistentvolumeclaims","deployments", "statefulsets", "replicasets", "daemonsets", "nodes"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups:
@@ -30,7 +33,17 @@ rules:
     - delete
 - apiGroups: ["route.openshift.io"]
   resources: ["routes"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]    
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles"]
+  verbs: ["bind"]
+  resourceNames: ["edit", "view", "admin"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups:
     - maximilianopizarro.github.io
   resources:
