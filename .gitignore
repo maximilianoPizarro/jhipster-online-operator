@@ -7,6 +7,9 @@
 *.dylib
 bin
 
+# Packaged chart archives (optional local artifacts; source chart is enough for the operator)
+helm-charts/jhipster-online/charts/*.tgz
+
 # editor and IDE paraphernalia
 .idea
 *.swp

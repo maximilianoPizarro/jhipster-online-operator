@@ -1,0 +1,6 @@
+apiVersion: v2
+name: pyhipster-worker
+description: PyHipster HTTP worker (OLM sub-chart for jhipster-online-operator)
+type: application
+version: 1.1.2
+appVersion: "2.41.1"

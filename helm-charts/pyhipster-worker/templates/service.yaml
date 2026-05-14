@@ -1,0 +1,22 @@
+{{- if .Values.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pyhipster-worker.operatorMainFullname" . }}-pyhipster-worker
+  labels:
+    app.kubernetes.io/name: jhipster-online
+    app.kubernetes.io/instance: {{ .Values.instanceBaseName | default .Release.Name | quote }}
+    app.kubernetes.io/component: pyhipster-worker
+    app: jhipster-online
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: jhipster-online
+    app.kubernetes.io/instance: {{ .Values.instanceBaseName | default .Release.Name | quote }}
+    app.kubernetes.io/component: pyhipster-worker
+{{- end }}

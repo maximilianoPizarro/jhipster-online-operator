@@ -1,0 +1,19 @@
+# Values are supplied from the Jhipster8Worker CR spec (Helm operator).
+enabled: true
+# Must match the metadata.name of the JhipsterOnline CR in the same namespace.
+instanceBaseName: ""
+replicas: 1
+port: 8081
+timeoutSeconds: 600
+image:
+  repository: quay.io/maximilianopizarro/jhipster-online-jhipster8-worker
+  tag: "2.41.1-jhipster8-worker"
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+resources: {}
+nodeSelector: {}
+affinity: {}
+tolerations: {}
+service:
+  type: ClusterIP
+serviceAccountName: ""

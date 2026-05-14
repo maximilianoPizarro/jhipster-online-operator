@@ -1,0 +1,16 @@
+apiVersion: maximilianopizarro.github.io/v1alpha1
+kind: McpWorker
+metadata:
+  name: demo
+spec:
+  enabled: true
+  instanceBaseName: demo
+  replicas: 1
+  port: 8083
+  timeoutSeconds: 120
+  image:
+    repository: quay.io/maximilianopizarro/jhipster-online-mcp-worker
+    tag: "2.41.1-mcp-worker"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP

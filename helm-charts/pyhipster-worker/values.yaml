@@ -1,0 +1,17 @@
+enabled: true
+instanceBaseName: ""
+replicas: 1
+port: 8082
+timeoutSeconds: 600
+image:
+  repository: quay.io/maximilianopizarro/jhipster-online-pyhipster-worker
+  tag: "2.41.1-pyhipster-worker"
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+resources: {}
+nodeSelector: {}
+affinity: {}
+tolerations: {}
+service:
+  type: ClusterIP
+serviceAccountName: ""

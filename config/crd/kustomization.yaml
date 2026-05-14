@@ -3,4 +3,7 @@
 # It should be run by config/default
 resources:
 - bases/maximilianopizarro.github.io_jhipsteronlines.yaml
+- bases/maximilianopizarro.github.io_jhipster8workers.yaml
+- bases/maximilianopizarro.github.io_pyhipsterworkers.yaml
+- bases/maximilianopizarro.github.io_mcpworkers.yaml
 #+kubebuilder:scaffold:crdkustomizeresource

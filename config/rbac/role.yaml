@@ -37,5 +37,14 @@ rules:
     - jhipsteronlines
     - jhipsteronlines/status
     - jhipsteronlines/finalizers
+    - jhipster8workers
+    - jhipster8workers/status
+    - jhipster8workers/finalizers
+    - pyhipsterworkers
+    - pyhipsterworkers/status
+    - pyhipsterworkers/finalizers
+    - mcpworkers
+    - mcpworkers/status
+    - mcpworkers/finalizers
   verbs:
     - '*'

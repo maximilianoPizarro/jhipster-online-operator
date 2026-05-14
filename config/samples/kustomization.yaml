@@ -1,4 +1,6 @@
 ## Append samples of your project ##
 resources:
 - charts_v1alpha1_jhipsteronline.yaml
-#+kubebuilder:scaffold:manifestskustomizesamples
+- charts_v1alpha1_jhipster8worker.yaml
+- charts_v1alpha1_pyhipsterworker.yaml
+- charts_v1alpha1_mcpworker.yaml

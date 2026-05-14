@@ -3,4 +3,15 @@
   version: v1alpha1
   kind: JhipsterOnline
   chart: helm-charts/jhipster-online
-#+kubebuilder:scaffold:watch
+- group: maximilianopizarro.github.io
+  version: v1alpha1
+  kind: Jhipster8Worker
+  chart: helm-charts/jhipster8-worker
+- group: maximilianopizarro.github.io
+  version: v1alpha1
+  kind: PyhipsterWorker
+  chart: helm-charts/pyhipster-worker
+- group: maximilianopizarro.github.io
+  version: v1alpha1
+  kind: McpWorker
+  chart: helm-charts/mcp-worker

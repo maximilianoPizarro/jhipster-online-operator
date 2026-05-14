@@ -1,68 +1,40 @@
 apiVersion: maximilianopizarro.github.io/v1alpha1
 kind: JhipsterOnline
 metadata:
-  name: jhipsteronline-sample
+  name: demo
 spec:
-  # Default values copied from <project_dir>/helm-charts/jhipster-online/values.yaml
-  affinity: {}
-  autoscaling:
-    enabled: false
-    maxReplicas: 100
-    minReplicas: 1
-    targetCPUUtilizationPercentage: 80
+  replicaCount: 1
+  image:
+    repository: quay.io/maximilianopizarro/jhipster-online
+    tag: "2.41.1-quarkus"
+    pullPolicy: Always
   env:
+    JAVA_APP_JAR: /deployments/jhonline.war
     APPLICATION_GITHUB_CLIENT-ID: CLIENT-ID
     APPLICATION_GITHUB_CLIENT-SECRET: CLIENT-SECRET
     APPLICATION_GITHUB_HOST: https://github.com
     APPLICATION_JHIPSTER-CMD_CMD: jhipster-quarkus
-    JAVA_APP_JAR: jhonline-2.33.0.war
-    SPRING_DATASOURCE_PASSWORD: jhipster
     SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jhipsteronline
     SPRING_DATASOURCE_USERNAME: jhipster
-  fullnameOverride: ""
-  image:
-    pullPolicy: IfNotPresent
-    repository: quay.io/maximilianopizarro/jhipster-online
-    tag: quarkus
-  imagePullSecrets: []
-  ingress:
-    annotations: {}
-    className: ""
-    enabled: false
-    hosts:
-    - host: chart-example.local
-      paths:
-      - path: /
-        pathType: ImplementationSpecific
-    tls: []
-  livenessProbe:
-    httpGet:
-      path: /jdl-studio/
-      port: 8080
-  nameOverride: ""
-  nodeSelector: {}
-  podAnnotations: {}
-  podLabels: {}
-  podSecurityContext: {}
-  readinessProbe:
-    httpGet:
-      path: /jdl-studio/
-      port: 8080
-  replicaCount: 1
-  resources: {}
+    SPRING_DATASOURCE_PASSWORD: jhipster
+  service:
+    type: ClusterIP
+    port: 8080
   route:
     enabled: true
-  securityContext: {}
-  service:
-    port: 8080
-    type: ClusterIP
-  serviceAccount:
-    annotations: {}
-    automount: false
-    create: false
-    name: ""
-  tolerations: []
-  volumeMounts: []
-  volumes: []
-  
-  
+  ingress:
+    enabled: false
+  mariadb:
+    enabled: true
+  jhipster8Worker:
+    enabled: true
+    port: 8081
+    timeoutSeconds: 600
+  pyhipsterWorker:
+    enabled: true
+    port: 8082
+    timeoutSeconds: 600
+  mcpWorker:
+    enabled: true
+    port: 8083
+    timeoutSeconds: 120

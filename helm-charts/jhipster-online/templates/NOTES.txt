@@ -20,3 +20,34 @@
   echo "Visit http://127.0.0.1:8080 to use your application"
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
 {{- end }}
+{{- if .Values.route.enabled }}
+2. OpenShift Route (public URL):
+     oc get route {{ include "jhipster-online.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath='{.spec.host}{"\n"}'
+{{- end }}
+{{- if .Values.kuadrant.enabled }}
+3. Kuadrant: HTTPRoute {{ include "jhipster-online.fullname" . }}-http — verify gateway refs (kuadrant.gateway.name/namespace) and hostnames match your environment.
+{{- end }}
+
+4. JHipster 8 worker:
+{{- if .Values.jhipster8Worker.enabled }}
+   Enabled — Deployment/Service {{ include "jhipster-online.fullname" . }}-jhipster8-worker (port {{ .Values.jhipster8Worker.port }}). Main app delegates .NET / Node / Azure ACA stacks via APPLICATION_JHIPSTER8WORKER_*.
+   Developer Sandbox: this adds one extra pod (in addition to main + MariaDB).
+{{- else }}
+   Disabled (jhipster8Worker.enabled=false). Only the main pod runs generation.
+{{- end }}
+
+5. PyHipster worker:
+{{- if .Values.pyhipsterWorker.enabled }}
+   Enabled — Deployment/Service {{ include "jhipster-online.fullname" . }}-pyhipster-worker (port {{ .Values.pyhipsterWorker.port }}). Main app delegates Python/PyHipster via APPLICATION_PYHIPSTERWORKER_*.
+   Developer Sandbox: adds one extra pod (cumulative with the JHipster 8 worker if both are enabled).
+{{- else }}
+   Disabled (pyhipsterWorker.enabled=false).
+{{- end }}
+
+6. MCP worker (Node sidecar HTTP API):
+{{- if .Values.mcpWorker.enabled }}
+   Enabled — Deployment/Service {{ include "jhipster-online.fullname" . }}-mcp-worker (port {{ .Values.mcpWorker.port }}). Main app calls the sidecar via APPLICATION_MCPWORKER_* (POST /generate, /preview).
+   Developer Sandbox: adds one extra pod when enabled.
+{{- else }}
+   Disabled (mcpWorker.enabled=false).
+{{- end }}

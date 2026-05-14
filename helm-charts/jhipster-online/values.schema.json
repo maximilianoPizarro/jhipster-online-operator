@@ -2,86 +2,99 @@
     "$schema": "http://json-schema.org/schema#",
     "type": "object",
     "properties": {
-        "affinity": {
-            "type": "object"
+        "replicaCount": {
+            "type": "integer",
+            "minimum": 1
         },
-        "autoscaling": {
+        "mariadb": {
             "type": "object",
+            "description": "In-cluster MariaDB (Secret, Deployment, Service, PVC). Disable to use an external database and override SPRING_DATASOURCE_* in env",
             "properties": {
                 "enabled": {
-                    "type": "boolean"
-                },
-                "maxReplicas": {
-                    "type": "integer"
-                },
-                "minReplicas": {
-                    "type": "integer"
-                },
-                "targetCPUUtilizationPercentage": {
-                    "type": "integer"
+                    "type": "boolean",
+                    "description": "Deploy bundled MariaDB workload (defaults to true)"
                 }
             }
-        },
-        "env": {
-            "type": "object",
-            "properties": {
-                "APPLICATION_GITHUB_CLIENT-ID": {
-                    "type": "string"
-                },
-                "APPLICATION_GITHUB_CLIENT-SECRET": {
-                    "type": "string"
-                },
-                "APPLICATION_GITHUB_HOST": {
-                    "type": "string"
-                },
-                "APPLICATION_JHIPSTER-CMD_CMD": {
-                    "type": "string"
-                },
-                "JAVA_APP_JAR": {
-                    "type": "string"
-                },
-                "SPRING_DATASOURCE_PASSWORD": {
-                    "type": "string"
-                },
-                "SPRING_DATASOURCE_URL": {
-                    "type": "string"
-                },
-                "SPRING_DATASOURCE_USERNAME": {
-                    "type": "string"
-                }
-            }
-        },
-        "fullnameOverride": {
-            "type": "string"
         },
         "image": {
             "type": "object",
             "properties": {
-                "pullPolicy": {
-                    "type": "string"
-                },
                 "repository": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Container image registry and repository"
+                },
+                "pullPolicy": {
+                    "type": "string",
+                    "description": "imagePullPolicy for the jhipster-online container only (Always recommended when tags are reused)",
+                    "enum": ["Always", "IfNotPresent", "Never"]
                 },
                 "tag": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Image tag (2.41.1-quarkus or 2.41.1-spring-boot)"
                 }
             }
         },
         "imagePullSecrets": {
             "type": "array"
         },
+        "nameOverride": {
+            "type": "string"
+        },
+        "fullnameOverride": {
+            "type": "string"
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "create": {
+                    "type": "boolean"
+                },
+                "automount": {
+                    "type": "boolean"
+                },
+                "annotations": {
+                    "type": "object"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "podAnnotations": {
+            "type": "object"
+        },
+        "podLabels": {
+            "type": "object"
+        },
+        "podSecurityContext": {
+            "type": "object"
+        },
+        "securityContext": {
+            "type": "object"
+        },
+        "service": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": ["ClusterIP", "NodePort", "LoadBalancer"]
+                },
+                "port": {
+                    "type": "integer"
+                }
+            }
+        },
         "ingress": {
             "type": "object",
             "properties": {
-                "annotations": {
-                    "type": "object"
+                "enabled": {
+                    "type": "boolean"
                 },
                 "className": {
                     "type": "string"
                 },
-                "enabled": {
-                    "type": "boolean"
+                "annotations": {
+                    "type": "object"
                 },
                 "hosts": {
                     "type": "array",
@@ -113,6 +126,13 @@
                 }
             }
         },
+        "resources": {
+            "type": "object"
+        },
+        "startupProbe": {
+            "type": "object",
+            "description": "Startup probe for the JHipster Online container (port 8080)"
+        },
         "livenessProbe": {
             "type": "object",
             "properties": {
@@ -128,21 +148,6 @@
                     }
                 }
             }
-        },
-        "nameOverride": {
-            "type": "string"
-        },
-        "nodeSelector": {
-            "type": "object"
-        },
-        "podAnnotations": {
-            "type": "object"
-        },
-        "podLabels": {
-            "type": "object"
-        },
-        "podSecurityContext": {
-            "type": "object"
         },
         "readinessProbe": {
             "type": "object",
@@ -160,59 +165,372 @@
                 }
             }
         },
-        "replicaCount": {
-            "type": "integer"
+        "jdlStudio": {
+            "type": "object",
+            "description": "JDL Studio sidecar (nginx) probe configuration",
+            "properties": {
+                "livenessProbe": {
+                    "type": "object"
+                },
+                "readinessProbe": {
+                    "type": "object"
+                }
+            }
         },
-        "resources": {
-            "type": "object"
-        },
-        "route": {
+        "autoscaling": {
             "type": "object",
             "properties": {
                 "enabled": {
                     "type": "boolean"
-                }
-            }
-        },
-        "securityContext": {
-            "type": "object"
-        },
-        "service": {
-            "type": "object",
-            "properties": {
-                "port": {
+                },
+                "minReplicas": {
                     "type": "integer"
                 },
-                "type": {
-                    "type": "string"
+                "maxReplicas": {
+                    "type": "integer"
+                },
+                "targetCPUUtilizationPercentage": {
+                    "type": "integer"
                 }
             }
         },
-        "serviceAccount": {
-            "type": "object",
-            "properties": {
-                "annotations": {
-                    "type": "object"
-                },
-                "automount": {
-                    "type": "boolean"
-                },
-                "create": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "tolerations": {
+        "volumes": {
             "type": "array"
         },
         "volumeMounts": {
             "type": "array"
         },
-        "volumes": {
+        "nodeSelector": {
+            "type": "object"
+        },
+        "tolerations": {
             "type": "array"
+        },
+        "affinity": {
+            "type": "object"
+        },
+        "openshift": {
+            "type": "object",
+            "description": "OpenShift-specific: in-cluster deploy RBAC",
+            "properties": {
+                "grantEditRoleToServiceAccount": {
+                    "type": "boolean",
+                    "description": "Bind namespace 'edit' to the pod ServiceAccount (default true for Developer Sandbox in-cluster deploy)"
+                }
+            }
+        },
+        "route": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Create an OpenShift Route"
+                },
+                "host": {
+                    "type": "string",
+                    "description": "Explicit hostname for the Route"
+                }
+            }
+        },
+        "kuadrant": {
+            "type": "object",
+            "description": "Kuadrant Gateway API policies (HTTPRoute, RateLimitPolicy, AuthPolicy)",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "gateway": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "namespace": {
+                            "type": "string"
+                        },
+                        "sectionName": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "httpRouteHostname": {
+                    "type": "string"
+                },
+                "keycloakIssuerUri": {
+                    "type": "string",
+                    "description": "OIDC issuer URL for JWT validation; enables AuthPolicy"
+                }
+            }
+        },
+        "env": {
+            "type": "object",
+            "description": "Environment variables injected into the jhipster-online container",
+            "properties": {
+                "JAVA_APP_JAR": {
+                    "type": "string",
+                    "description": "Path to the WAR inside the container (e.g. /deployments/jhonline.war for OpenShift Java images)"
+                },
+                "LOGGING_PATTERN_CONSOLE": {
+                    "type": "string"
+                },
+                "JAVA_OPTS_APPEND": {
+                    "type": "string",
+                    "description": "Appended to JVM options (UBI OpenJDK run script); UTF-8 and heap tuning for container"
+                },
+                "APPLICATION_GITHUB_HOST": {
+                    "type": "string"
+                },
+                "APPLICATION_GITHUB_CLIENT-ID": {
+                    "type": "string"
+                },
+                "APPLICATION_GITHUB_CLIENT-SECRET": {
+                    "type": "string"
+                },
+                "APPLICATION_JHIPSTER-CMD_CMD": {
+                    "type": "string",
+                    "description": "Generator CLI command: 'jhipster' or 'jhipster-quarkus'"
+                },
+                "OPENSHIFT_DEPLOYMENT_ENABLED": {
+                    "type": "string",
+                    "description": "Enable OpenShift in-cluster deploy from UI (openshift.deployment.enabled)",
+                    "enum": ["true", "false"]
+                },
+                "SPRING_DATASOURCE_URL": {
+                    "type": "string"
+                },
+                "SPRING_DATASOURCE_USERNAME": {
+                    "type": "string"
+                },
+                "SPRING_DATASOURCE_PASSWORD": {
+                    "type": "string"
+                },
+                "APPLICATION_HELM_TEMPLATE_PACKAGE_CHART_REPOSITORY_ON_GENERATE": {
+                    "type": "string",
+                    "description": "After rendering generated helm/, run helm package and helm repo index (chart-repository/ in Git)",
+                    "enum": ["true", "false"]
+                },
+                "APPLICATION_HELM_TEMPLATE_CHART_REPOSITORY_INDEX_BASE_URL": {
+                    "type": "string",
+                    "description": "Optional helm repo index --url base; blank uses GitHub Pages convention per upstream"
+                },
+                "APPLICATION_HELM_TEMPLATE_HELM_BINARY": {
+                    "type": "string",
+                    "description": "Helm CLI binary for chart packaging (application.helm-template.helm-binary)"
+                },
+                "OPENSHIFT_USE_HELM_CLI": {
+                    "type": "string",
+                    "description": "Prefer helm upgrade --install for in-cluster deploy (upstream application-prod.yml placeholder)",
+                    "enum": ["true", "false"]
+                },
+                "OPENSHIFT_HELM_BINARY": {
+                    "type": "string",
+                    "description": "Helm binary for OpenShift deploy (OPENSHIFT_HELM_BINARY)"
+                },
+                "OPENSHIFT_HELM_TIMEOUT_SECONDS": {
+                    "type": "string",
+                    "description": "Helm install/upgrade timeout in seconds"
+                },
+                "OPENSHIFT_HELM_FALLBACK_TO_FABRIC8": {
+                    "type": "string",
+                    "description": "If Helm CLI deploy fails, fall back to Fabric8 apply",
+                    "enum": ["true", "false"]
+                },
+                "APPLICATION_JDL_AI_ENABLED": {
+                    "type": "string",
+                    "description": "Enable JDL AI assistant (true/false)",
+                    "enum": ["true", "false"]
+                },
+                "APPLICATION_JDL_AI_INSECURE_TLS": {
+                    "type": "string",
+                    "description": "Trust self-signed certs for in-cluster model endpoints",
+                    "enum": ["true", "false"]
+                },
+                "APPLICATION_JDL_AI_DEFAULT_MODEL_ID": {
+                    "type": "string",
+                    "description": "Default model ID from the models list"
+                },
+                "APPLICATION_JDL_AI_RAG_ENABLED": {
+                    "type": "string",
+                    "description": "Enable lexical RAG over JDL reference chunks",
+                    "enum": ["true", "false"]
+                },
+                "APPLICATION_JDL_AI_RAG_TOP_K": {
+                    "type": "string",
+                    "description": "Number of RAG chunks to inject"
+                },
+                "APPLICATION_JDL_AI_RAG_MAX_CHARS": {
+                    "type": "string",
+                    "description": "Max characters of RAG context"
+                },
+                "APPLICATION_JDL_AI_RAG_SEMANTIC_ENABLED": {
+                    "type": "string",
+                    "description": "Enable semantic RAG (embeddings + cosine similarity); requires embeddings URL",
+                    "enum": ["true", "false"]
+                },
+                "APPLICATION_JDL_AI_EMBEDDINGS_URL": {
+                    "type": "string",
+                    "description": "OpenAI-compatible POST .../v1/embeddings URL when semantic RAG is enabled"
+                },
+                "APPLICATION_JDL_AI_EMBEDDINGS_MODEL": {
+                    "type": "string",
+                    "description": "Model id sent in embeddings JSON body"
+                },
+                "APPLICATION_JDL_AI_CONNECT_TIMEOUT_MS": {
+                    "type": "string",
+                    "description": "HTTP connect timeout (ms) to completions/embeddings upstream"
+                },
+                "APPLICATION_JDL_AI_READ_TIMEOUT_MS": {
+                    "type": "string",
+                    "description": "HTTP read timeout (ms) to completions/embeddings upstream"
+                },
+                "APPLICATION_JDL_AI_HELP_TEXT": {
+                    "type": "string",
+                    "description": "Hint text shown in the AI panel UI"
+                },
+                "APPLICATION_JDL_AI_MODELS_0_ID": {
+                    "type": "string",
+                    "description": "Model 0 stable ID"
+                },
+                "APPLICATION_JDL_AI_MODELS_0_LABEL": {
+                    "type": "string",
+                    "description": "Model 0 display label"
+                },
+                "APPLICATION_JDL_AI_MODELS_0_MODEL": {
+                    "type": "string",
+                    "description": "Model 0 vLLM model name"
+                },
+                "APPLICATION_JDL_AI_MODELS_0_API_URL": {
+                    "type": "string",
+                    "description": "Model 0 OpenAI-compatible completions URL"
+                },
+                "APPLICATION_JDL_AI_MODELS_1_ID": {
+                    "type": "string"
+                },
+                "APPLICATION_JDL_AI_MODELS_1_LABEL": {
+                    "type": "string"
+                },
+                "APPLICATION_JDL_AI_MODELS_1_MODEL": {
+                    "type": "string"
+                },
+                "APPLICATION_JDL_AI_MODELS_1_API_URL": {
+                    "type": "string"
+                },
+                "APPLICATION_JDL_AI_MODELS_2_ID": {
+                    "type": "string"
+                },
+                "APPLICATION_JDL_AI_MODELS_2_LABEL": {
+                    "type": "string"
+                },
+                "APPLICATION_JDL_AI_MODELS_2_MODEL": {
+                    "type": "string"
+                },
+                "APPLICATION_JDL_AI_MODELS_2_API_URL": {
+                    "type": "string"
+                },
+                "APPLICATION_JDL_AI_API_KEY": {
+                    "type": "string",
+                    "description": "Bearer token for model authentication (use --set-string at install)"
+                }
+            }
+        },
+        "jhipster8Worker": {
+            "type": "object",
+            "description": "Optional JHipster 8 HTTP worker for .NET, Node/NestJS, and Azure Container Apps generation",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Deploy jhipster8-worker Deployment + Service and wire main app via APPLICATION_JHIPSTER8WORKER_*"
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "HTTP port for the worker container and Service (must match worker image listen port)"
+                },
+                "timeoutSeconds": {
+                    "type": "integer",
+                    "description": "Client timeout for delegating generation to the worker"
+                },
+                "replicas": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "repository": {
+                            "type": "string"
+                        },
+                        "tag": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "pyhipsterWorker": {
+            "type": "object",
+            "description": "PyHipster HTTP worker (Python/Flask); main app uses APPLICATION_PYHIPSTERWORKER_* when enabled (defaults to true in values.yaml)",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Deploy pyhipster-worker Deployment + Service and wire main app via APPLICATION_PYHIPSTERWORKER_*"
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "HTTP port for the worker container and Service (default 8082)"
+                },
+                "timeoutSeconds": {
+                    "type": "integer",
+                    "description": "Client timeout for delegating generation to the worker"
+                },
+                "replicas": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "repository": {
+                            "type": "string"
+                        },
+                        "tag": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "mcpWorker": {
+            "type": "object",
+            "description": "Optional Node MCP HTTP worker (port 8083); main app uses APPLICATION_MCPWORKER_* when enabled (defaults to true in values.yaml)",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Deploy mcp-worker Deployment + Service and wire main app via APPLICATION_MCPWORKER_* (defaults to true in values.yaml)"
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "HTTP port for the MCP worker container and Service (default 8083)"
+                },
+                "timeoutSeconds": {
+                    "type": "integer",
+                    "description": "Client timeout for calls from the main app to the MCP worker"
+                },
+                "replicas": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "repository": {
+                            "type": "string"
+                        },
+                        "tag": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     }
 }

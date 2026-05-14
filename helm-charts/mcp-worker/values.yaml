@@ -1,0 +1,17 @@
+enabled: true
+instanceBaseName: ""
+replicas: 1
+port: 8083
+timeoutSeconds: 120
+image:
+  repository: quay.io/maximilianopizarro/jhipster-online-mcp-worker
+  tag: "2.41.1-mcp-worker"
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+resources: {}
+nodeSelector: {}
+affinity: {}
+tolerations: {}
+service:
+  type: ClusterIP
+serviceAccountName: ""

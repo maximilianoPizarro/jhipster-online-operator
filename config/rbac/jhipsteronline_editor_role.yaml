@@ -15,6 +15,9 @@ rules:
   - maximilianopizarro.github.io
   resources:
   - jhipsteronlines
+  - jhipster8workers
+  - pyhipsterworkers
+  - mcpworkers
   verbs:
   - create
   - delete
@@ -27,5 +30,8 @@ rules:
   - maximilianopizarro.github.io
   resources:
   - jhipsteronlines/status
+  - jhipster8workers/status
+  - pyhipsterworkers/status
+  - mcpworkers/status
   verbs:
   - get

@@ -17,4 +17,25 @@ resources:
   group: charts
   kind: JhipsterOnline
   version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: maximilianopizarro.github.io
+  group: charts
+  kind: Jhipster8Worker
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: maximilianopizarro.github.io
+  group: charts
+  kind: PyhipsterWorker
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: maximilianopizarro.github.io
+  group: charts
+  kind: McpWorker
+  version: v1alpha1
 version: "3"

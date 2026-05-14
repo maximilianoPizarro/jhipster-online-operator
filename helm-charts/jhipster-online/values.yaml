@@ -1,6 +1,14 @@
 # Default values for jhipster-online.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+#
+# -----------------------------------------------------------------------------
+# Profile: Red Hat OpenShift Developer Sandbox (first-run / try-out defaults).
+# Everything is in this file — no separate overlay YAML.
+# For other clusters: set openshift.grantEditRoleToServiceAccount to false,
+# env.OPENSHIFT_DEPLOYMENT_ENABLED to "false" if you forbid in-cluster deploy,
+# tune resources, and inject env.APPLICATION_JDL_AI_API_KEY via --set-string or a Secret.
+# -----------------------------------------------------------------------------
 
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
 replicaCount: 1
@@ -8,10 +16,11 @@ replicaCount: 1
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
   repository: quay.io/maximilianopizarro/jhipster-online
-  # This sets the pull policy for images.
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: "quarkus"
+  # Pull policy for the jhipster-online container only (see templates/deployment.yaml).
+  # Always: each new pod pulls the image again — use when the tag is reused or you want the latest digest from the registry (same as oc patch … imagePullPolicy: Always).
+  pullPolicy: Always
+  # Overrides the image tag (use 2.41.1-quarkus or 2.41.1-spring-boot for runtime images).
+  tag: "2.41.1-quarkus"
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
@@ -33,7 +42,9 @@ serviceAccount:
 
 # This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
-podAnnotations: {}
+podAnnotations:
+  # Prefer main app for `oc logs`/OpenShift log view (otherwise the UI may pick the sidecar first).
+  kubectl.kubernetes.io/default-container: jhipster-online
 # This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 podLabels: {}
@@ -73,27 +84,60 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+# Default resources for the jhipster-online container (JVM + Spring Boot startup).
+# Tuned for Developer Sandbox quotas; raise limits for heavier prod workloads.
+resources:
+  requests:
+    memory: "768Mi"
+    cpu: "100m"
+  limits:
+    memory: "2Gi"
+    cpu: "1"
 
-# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+# Probes target the Spring Boot app on port 8080 (NOT /jdl-studio/, which is served by the jdl-studio sidecar on 8081).
+# Startup gives the JVM time to boot before liveness failures (clearer logs, fewer CrashLoop restarts).
+startupProbe:
+  tcpSocket:
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+
 livenessProbe:
   httpGet:
-    path: /jdl-studio/
+    path: /management/health
     port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
+
 readinessProbe:
   httpGet:
-    path: /jdl-studio/
+    path: /management/health
     port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+# Sidecar (nginx + JDL Studio UI). Probes use port 8081 only — do not probe /jdl-studio/ on 8080.
+jdlStudio:
+  livenessProbe:
+    tcpSocket:
+      port: 8081
+    initialDelaySeconds: 20
+    periodSeconds: 30
+    timeoutSeconds: 3
+    failureThreshold: 5
+  readinessProbe:
+    tcpSocket:
+      port: 8081
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 6
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
@@ -122,22 +166,142 @@ tolerations: []
 
 affinity: {}
 
-route:
-  enabled: true  
+# OpenShift-only: in-cluster deploy from the JHipster Online UI (Fabric8 / Helm / Argo CD).
+openshift:
+  # When true, creates a RoleBinding so the pod's ServiceAccount gets namespace-scoped "edit"
+  # (required on Developer Sandbox for default SA; set false for least-privilege elsewhere).
+  grantEditRoleToServiceAccount: true
 
-memcached:
+route:
   enabled: true
-  replicaCount: 1
+  # Optional explicit hostname for the OpenShift Route (recommended on Developer Sandbox).
+  # host: jhipster-online-myuser-dev.apps.sandbox-m4.p1.openshiftapps.com
+
+# Optional Kuadrant policies (Gateway API HTTPRoute + RateLimitPolicy; AuthPolicy if keycloakIssuerUri is set).
+# Requires Gateway API, a Gateway instance, and Kuadrant CRDs in the cluster.
+kuadrant:
+  enabled: false
+  gateway:
+    name: ""
+    namespace: ""
+    sectionName: https
+  # If empty, falls back to route.host; set explicitly when using HTTPRoute without route.host.
+  httpRouteHostname: ""
+  # Issuer URL for JWT validation (Keycloak / OIDC). Example: https://keycloak-.../realms/jhipster
+  keycloakIssuerUri: ""
 
 env:
-  JAVA_APP_JAR: jhonline-2.33.0.war
+  # OpenShift Java image convention: WAR under /deployments (see image Dockerfile / S2I output).
+  JAVA_APP_JAR: /deployments/jhonline.war
+  # UBI OpenJDK run script: appended to the JVM command line (UTF-8 helps console banner/logs; MaxRAMPercentage fits heap to cgroup memory).
+  # See https://github.com/redhat-developer-demos/jhipster-online (Dockerfile.quarkus / spring-boot).
+  JAVA_OPTS_APPEND: "-Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -XX:MaxRAMPercentage=65.0"
+  LOGGING_PATTERN_CONSOLE: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{40} - %msg%n"
   APPLICATION_GITHUB_HOST: https://github.com
   APPLICATION_GITHUB_CLIENT-ID: CLIENT-ID
   APPLICATION_GITHUB_CLIENT-SECRET: CLIENT-SECRET
   APPLICATION_JHIPSTER-CMD_CMD: jhipster-quarkus
+  # In-cluster OpenShift deploy from the UI (openshift.deployment.enabled). Default on for Sandbox.
+  OPENSHIFT_DEPLOYMENT_ENABLED: "true"
   SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/jhipsteronline
   SPRING_DATASOURCE_USERNAME: jhipster
-  SPRING_DATASOURCE_PASSWORD: jhipster  
+  SPRING_DATASOURCE_PASSWORD: jhipster
+  # OpenShift generator: devfile, Tekton, and Helm scaffold templates ship inside the application
+  # (classpath: helm-template/, repo-root-template/). Do not set raw GitHub URLs — external kubernetes/*.yaml
+  # pipeline/devfile URLs were removed upstream (see redhat-developer-demos/jhipster-online).
+  # Optional Backstage catalog entity file still in the repo: src/main/kubernetes/catalog-info.yaml
+  # Generated-repo Helm chart (application.helm-template.* — upstream application-prod.yml).
+  # Packaging runs helm package/repo index after render; requires helm CLI on the app image if enabled.
+  APPLICATION_HELM_TEMPLATE_PACKAGE_CHART_REPOSITORY_ON_GENERATE: "true"
+  APPLICATION_HELM_TEMPLATE_CHART_REPOSITORY_INDEX_BASE_URL: ""
+  APPLICATION_HELM_TEMPLATE_HELM_BINARY: "helm"
+  # In-cluster deploy Helm CLI (names match upstream application-prod.yml placeholders).
+  OPENSHIFT_USE_HELM_CLI: "true"
+  OPENSHIFT_HELM_BINARY: "helm"
+  OPENSHIFT_HELM_TIMEOUT_SECONDS: "600"
+  OPENSHIFT_HELM_FALLBACK_TO_FABRIC8: "true"
+  # JDL AI assistant — models served via KServe/vLLM in sandbox-shared-models namespace.
+  # See https://github.com/redhat-developer-demos/jhipster-online README ("Optional JDL AI assistant").
+  APPLICATION_JDL_AI_ENABLED: "true"
+  APPLICATION_JDL_AI_INSECURE_TLS: "true"
+  APPLICATION_JDL_AI_DEFAULT_MODEL_ID: granite-31-8b
+  APPLICATION_JDL_AI_RAG_ENABLED: "true"
+  APPLICATION_JDL_AI_RAG_TOP_K: "6"
+  APPLICATION_JDL_AI_RAG_MAX_CHARS: "14000"
+  APPLICATION_JDL_AI_RAG_SEMANTIC_ENABLED: "false"
+  APPLICATION_JDL_AI_EMBEDDINGS_URL: ""
+  APPLICATION_JDL_AI_EMBEDDINGS_MODEL: "text-embedding-3-small"
+  APPLICATION_JDL_AI_CONNECT_TIMEOUT_MS: "15000"
+  APPLICATION_JDL_AI_READ_TIMEOUT_MS: "120000"
+  APPLICATION_JDL_AI_HELP_TEXT: "GPU models from sandbox-shared-models (IBM Granite, NVIDIA Nemotron, Qwen3). Use a cluster token with access to that namespace."
+  # Model 0 — IBM Granite 3.1 8B (FP8) (labels match upstream application-prod.yml)
+  APPLICATION_JDL_AI_MODELS_0_ID: granite-31-8b
+  APPLICATION_JDL_AI_MODELS_0_LABEL: "IBM Granite 3.1 8B (FP8)"
+  APPLICATION_JDL_AI_MODELS_0_MODEL: isvc-granite-31-8b-fp8
+  APPLICATION_JDL_AI_MODELS_0_API_URL: "https://isvc-granite-31-8b-fp8-predictor.sandbox-shared-models.svc.cluster.local:8443/v1/chat/completions"
+  # Model 1 — NVIDIA Nemotron Nano 9B v2 (FP8)
+  APPLICATION_JDL_AI_MODELS_1_ID: nemotron-nano-9b-v2
+  APPLICATION_JDL_AI_MODELS_1_LABEL: "NVIDIA Nemotron Nano 9B v2 (FP8)"
+  APPLICATION_JDL_AI_MODELS_1_MODEL: isvc-nemotron-nano-9b-v2-fp8
+  APPLICATION_JDL_AI_MODELS_1_API_URL: "https://isvc-nemotron-nano-9b-v2-fp8-predictor.sandbox-shared-models.svc.cluster.local:8443/v1/chat/completions"
+  # Model 2 — Qwen 3 8B (FP8)
+  APPLICATION_JDL_AI_MODELS_2_ID: qwen3-8b
+  APPLICATION_JDL_AI_MODELS_2_LABEL: "Qwen3 8B (FP8)"
+  APPLICATION_JDL_AI_MODELS_2_MODEL: isvc-qwen3-8b-fp8
+  APPLICATION_JDL_AI_MODELS_2_API_URL: "https://isvc-qwen3-8b-fp8-predictor.sandbox-shared-models.svc.cluster.local:8443/v1/chat/completions"
+  # Bearer token for model auth — set via --set-string at install time: --set-string env.APPLICATION_JDL_AI_API_KEY="$(oc whoami -t)"
+  APPLICATION_JDL_AI_API_KEY: ""
+
+# -----------------------------------------------------------------------------
+# JHipster 8 HTTP worker: generator-jhipster@8.11 + dotnet / nodejs / azure-container-apps blueprints.
+# When enabled, deploys a second Deployment + Service and sets env on the main app to delegate
+# those stacks (.NET, Node/NestJS, Azure Container Apps). Main pod stays on JH9 (Quarkus/Spring Boot).
+# Developer Sandbox: adds 1 pod (+1 vs main+MariaDB only). Set enabled: false to save quota.
+# -----------------------------------------------------------------------------
+jhipster8Worker:
+  enabled: true
+  port: 8081
+  timeoutSeconds: 600
+  replicas: 1
+  image:
+    repository: quay.io/maximilianopizarro/jhipster-online-jhipster8-worker
+    tag: "2.41.1-jhipster8-worker"
+
+# -----------------------------------------------------------------------------
+# PyHipster HTTP worker: Python/Flask stack via separate Deployment + Service.
+# When enabled, main app receives APPLICATION_PYHIPSTERWORKER_* and delegates to this pod (port 8082).
+# Default on — set enabled: false to save Developer Sandbox quota or if the worker image is unavailable.
+# -----------------------------------------------------------------------------
+pyhipsterWorker:
+  enabled: true
+  port: 8082
+  timeoutSeconds: 600
+  replicas: 1
+  image:
+    repository: quay.io/maximilianopizarro/jhipster-online-pyhipster-worker
+    tag: "2.41.1-pyhipster-worker"
+
+# -----------------------------------------------------------------------------
+# MCP HTTP worker (Node): optional sidecar workload on port 8083 (POST /generate, /preview).
+# When enabled, deploys Deployment + Service and sets APPLICATION_MCPWORKER_* on the main app.
+# Default on (same pattern as JH8 / PyHipster workers). Set enabled: false to save quota or if the image is unavailable.
+# -----------------------------------------------------------------------------
+mcpWorker:
+  enabled: true
+  port: 8083
+  timeoutSeconds: 120
+  replicas: 1
+  image:
+    repository: quay.io/maximilianopizarro/jhipster-online-mcp-worker
+    tag: "2.41.1-mcp-worker"
+
+# -----------------------------------------------------------------------------
+# In-cluster MariaDB (OpenShift template: Secret, Deployment, Service, PVC).
+# Default on for Developer Sandbox. Set enabled: false to use an external database;
+# you must override env (e.g. SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD).
+# -----------------------------------------------------------------------------
+mariadb:
+  enabled: true
 
 #global:
 #  security:
