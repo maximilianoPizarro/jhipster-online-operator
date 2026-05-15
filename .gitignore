@@ -10,6 +10,9 @@ bin
 # Packaged chart archives (optional local artifacts; source chart is enough for the operator)
 helm-charts/jhipster-online/charts/*.tgz
 
+# Temporary bundle folders created by operator-sdk
+bundle-[0-9]*
+
 # editor and IDE paraphernalia
 .idea
 *.swp
