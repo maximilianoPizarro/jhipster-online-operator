@@ -8,7 +8,6 @@ name: alpha
 package: jhipster-online-operator
 entries:
   - name: jhipster-online-operator.v1.1.2
-    replaces: jhipster-online-operator.v0.1.0
 ---
 schema: olm.bundle
 name: jhipster-online-operator.v1.1.2
