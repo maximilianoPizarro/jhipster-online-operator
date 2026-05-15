@@ -3,15 +3,19 @@
   version: v1alpha1
   kind: JhipsterOnline
   chart: helm-charts/jhipster-online
+  watchDependentResources: false
 - group: maximilianopizarro.github.io
   version: v1alpha1
   kind: Jhipster8Worker
   chart: helm-charts/jhipster8-worker
+  watchDependentResources: false
 - group: maximilianopizarro.github.io
   version: v1alpha1
   kind: PyhipsterWorker
   chart: helm-charts/pyhipster-worker
+  watchDependentResources: false
 - group: maximilianopizarro.github.io
   version: v1alpha1
   kind: McpWorker
   chart: helm-charts/mcp-worker
+  watchDependentResources: false
